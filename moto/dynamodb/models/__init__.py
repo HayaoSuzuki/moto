@@ -49,7 +49,7 @@ from moto.dynamodb.parsing.validators import UpdateExpressionValidator
 
 
 class DynamoDBBackend(BaseBackend):
-    def __init__(self, region_name: str, account_id: str):
+    def __init__(self, region_name: str, account_id: str) -> None:
         super().__init__(region_name, account_id)
         self.tables: dict[str, Table] = OrderedDict()
         self.backups: dict[str, Backup] = OrderedDict()

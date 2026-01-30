@@ -97,7 +97,7 @@ class CloudFormationModel(BaseModel):
 
 
 class ConfigQueryModel(Generic[SERVICE_BACKEND]):
-    def __init__(self, backends: BackendDict[SERVICE_BACKEND]):
+    def __init__(self, backends: BackendDict[SERVICE_BACKEND]) -> None:
         """Inits based on the resource type's backends (1 for each region if applicable)"""
         self.backends = backends
 

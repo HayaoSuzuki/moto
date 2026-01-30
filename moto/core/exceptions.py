@@ -106,7 +106,7 @@ class RESTError(HTTPException):
 
     def __init__(
         self, error_type: str, message: str, template: str = "error", **kwargs: Any
-    ):
+    ) -> None:
         super().__init__()
         self.error_type = error_type
         self.message = message
@@ -148,7 +148,7 @@ class RESTError(HTTPException):
 class JsonRESTError(RESTError):
     def __init__(
         self, error_type: str, message: str, template: str = "error_json", **kwargs: Any
-    ):
+    ) -> None:
         super().__init__(error_type, message, template, **kwargs)
         self.description: str = json.dumps(
             {"__type": self.error_type, "message": self.message}
@@ -188,7 +188,7 @@ class InvalidClientTokenIdError(RESTError):
 class AccessDeniedError(RESTError):
     code = 403
 
-    def __init__(self, user_arn: str, action: str):
+    def __init__(self, user_arn: str, action: str) -> None:
         super().__init__(
             "AccessDenied", f"User: {user_arn} is not authorized to perform: {action}"
         )
@@ -213,7 +213,7 @@ class AWSError(JsonRESTError):
         message: str,
         exception_type: Optional[str] = None,
         status: Optional[int] = None,
-    ):
+    ) -> None:
         super().__init__(exception_type or self.TYPE, message)  # type: ignore[arg-type]
         self.code = status or self.STATUS
 
@@ -232,12 +232,12 @@ class InvalidNextTokenException(JsonRESTError):
 class InvalidToken(AWSError):
     code = 400
 
-    def __init__(self, message: str = "Invalid token"):
+    def __init__(self, message: str = "Invalid token") -> None:
         super().__init__(f"Invalid Token: {message}", "InvalidToken")
 
 
 class ServiceNotWhitelisted(Exception):
-    def __init__(self, service_name: str):
+    def __init__(self, service_name: str) -> None:
         from moto.settings import default_user_config
 
         services_whitelisted = default_user_config.get("core", {}).get(

@@ -97,7 +97,7 @@ def convert_regex_to_flask_path(url_path: str) -> str:
 
 
 class convert_to_flask_response:
-    def __init__(self, callback: Callable[..., Any]):
+    def __init__(self, callback: Callable[..., Any]) -> None:
         self.callback = callback
 
     @property
@@ -133,7 +133,7 @@ class convert_to_flask_response:
 
 
 class convert_flask_to_responses_response:
-    def __init__(self, callback: Callable[..., Any]):
+    def __init__(self, callback: Callable[..., Any]) -> None:
         self.callback = callback
 
     @property

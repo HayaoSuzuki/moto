@@ -21,7 +21,7 @@ class TableExport(Thread):
         table: "Table",
         export_format: str,
         export_type: str,
-    ):
+    ) -> None:
         super().__init__()
         self.partition = get_partition(region_name)
         self.table = table

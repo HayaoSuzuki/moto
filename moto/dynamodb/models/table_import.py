@@ -24,7 +24,7 @@ class TableImport(Thread):
         global_indexes: Optional[list[dict[str, Any]]],
         attrs: list[dict[str, str]],
         compression_type: Optional[str],
-    ):
+    ) -> None:
         super().__init__()
         self.partition = get_partition(region_name)
         self.arn = f"arn:{self.partition}:dynamodb:{region_name}:{account_id}:table/{table_name}/import/{str(uuid4()).replace('-', '')}"

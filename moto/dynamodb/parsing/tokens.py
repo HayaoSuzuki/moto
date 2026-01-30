@@ -54,7 +54,7 @@ class Token:
         NUMBER: "Number",
     }
 
-    def __init__(self, token_type: Union[int, str], value: str):
+    def __init__(self, token_type: Union[int, str], value: str) -> None:
         assert (
             token_type in self.SPECIAL_CHARACTERS
             or token_type in self.PLACEHOLDER_NAMES
@@ -142,7 +142,7 @@ class ExpressionTokenizer:
         problematic_token = self.staged_characters[0]
         raise InvalidTokenException(problematic_token, near + self.staged_characters)
 
-    def __init__(self, input_expression_str: str):
+    def __init__(self, input_expression_str: str) -> None:
         self.input_expression_str = input_expression_str
         self.token_list: list[Token] = []
         self.staged_characters = ""

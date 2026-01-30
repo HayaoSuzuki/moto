@@ -39,7 +39,7 @@ class InstanceTrackerMeta(type):
 
 
 class BaseBackend:
-    def __init__(self, region_name: str, account_id: str):
+    def __init__(self, region_name: str, account_id: str) -> None:
         self.region_name = region_name
         self.account_id = account_id
         self.partition = get_partition(region_name)
@@ -204,7 +204,7 @@ class AccountSpecificBackend(dict[str, SERVICE_BACKEND]):
         backend: type,
         use_boto3_regions: bool,
         additional_regions: Optional[list[str]],
-    ):
+    ) -> None:
         self._id = str(uuid4())
         self.service_name = service_name
         self.account_id = account_id
@@ -329,7 +329,7 @@ class BackendDict(dict[str, AccountSpecificBackend[SERVICE_BACKEND]]):
         service_name: str,
         use_boto3_regions: bool = True,
         additional_regions: Optional[list[str]] = None,
-    ):
+    ) -> None:
         self.backend = backend
         self.service_name = service_name
         self._use_boto3_regions = use_boto3_regions

@@ -61,7 +61,7 @@ class DynamoType:
     http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DataModel.html#DataModelDataTypes
     """
 
-    def __init__(self, type_as_dict: Union["DynamoType", dict[str, Any]]):
+    def __init__(self, type_as_dict: Union["DynamoType", dict[str, Any]]) -> None:
         if type(type_as_dict) is DynamoType:
             self.type: str = type_as_dict.type
             self.value: Any = type_as_dict.value
@@ -276,7 +276,7 @@ class DynamoType:
 # https://github.com/getmoto/moto/issues/1874
 # Ensure that the total size of an item does not exceed 400kb
 class LimitedSizeDict(dict[str, Any]):
-    def __init__(self, *args: Any, **kwargs: Any):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         self.update(*args, **kwargs)
 
     def __setitem__(self, key: str, value: Any) -> None:
@@ -303,7 +303,7 @@ class Item(BaseModel):
         hash_key: DynamoType,
         range_key: Optional[DynamoType],
         attrs: dict[str, Any],
-    ):
+    ) -> None:
         self.hash_key = hash_key
         self.range_key = range_key
 

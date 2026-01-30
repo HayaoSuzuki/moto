@@ -9,7 +9,7 @@ class Base64EncodedString:
     A type to encapsulate a Base64 encoded string.
     """
 
-    def __init__(self, encoded_string: str):
+    def __init__(self, encoded_string: str) -> None:
         if not isinstance(encoded_string, str):
             raise TypeError("Base64EncodedString must be initialized with a string.")
         try:

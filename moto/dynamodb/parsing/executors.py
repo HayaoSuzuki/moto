@@ -29,7 +29,9 @@ from moto.dynamodb.parsing.validators import ExpressionPathResolver
 
 
 class NodeExecutor:
-    def __init__(self, ast_node: Node, expression_attribute_names: dict[str, str]):
+    def __init__(
+        self, ast_node: Node, expression_attribute_names: dict[str, str]
+    ) -> None:
         self.node = ast_node
         self.expression_attribute_names = expression_attribute_names
 
@@ -282,7 +284,7 @@ class UpdateExpressionExecutor:
 
     def __init__(
         self, update_ast: Node, item: Item, expression_attribute_names: dict[str, str]
-    ):
+    ) -> None:
         self.update_ast = update_ast
         self.item = item
         self.expression_attribute_names = expression_attribute_names

@@ -338,7 +338,7 @@ def override_responses_real_send(user_mock: Optional[responses.RequestsMock]) ->
 class ServerModeMockAWS(MockAWS):
     _RESET_IN_PROGRESS = False
 
-    def __init__(self, *args: Any, **kwargs: Any):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         self._test_server_mode_endpoint = settings.test_server_mode_endpoint()
         super().__init__(*args, **kwargs)
 
@@ -404,7 +404,7 @@ class ServerModeMockAWS(MockAWS):
 class ProxyModeMockAWS(MockAWS):
     _RESET_IN_PROGRESS = False
 
-    def __init__(self, *args: Any, **kwargs: Any):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         self._test_proxy_mode_endpoint = settings.test_proxy_mode_endpoint()
         super().__init__(*args, **kwargs)
 

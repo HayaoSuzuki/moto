@@ -46,7 +46,7 @@ class Route53DomainsBackend(BaseBackend):
         },
     }
 
-    def __init__(self, region_name: str, account_id: str):
+    def __init__(self, region_name: str, account_id: str) -> None:
         super().__init__(region_name, account_id)
         self.__route53_backend: Route53Backend = route53_backends[account_id][
             self.partition

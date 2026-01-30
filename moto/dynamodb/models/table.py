@@ -36,7 +36,7 @@ class SecondaryIndex(BaseModel):
         schema: list[dict[str, str]],
         projection: dict[str, Any],
         table_key_attrs: list[str],
-    ):
+    ) -> None:
         self.name = index_name
         self.schema = schema
         self.table_key_attrs = table_key_attrs
@@ -103,7 +103,7 @@ class GlobalSecondaryIndex(SecondaryIndex):
         status: str = "ACTIVE",
         throughput: Optional[dict[str, Any]] = None,
         warm_throughput: Optional[dict[str, Any]] = None,
-    ):
+    ) -> None:
         super().__init__(index_name, schema, projection, table_key_attrs)
         self.status = status
         if throughput:
@@ -164,7 +164,7 @@ class StreamRecord(BaseModel):
         old: Optional[Item],
         new: Optional[Item],
         seq: int,
-    ):
+    ) -> None:
         old_a = old.to_json()["Attributes"] if old is not None else {}
         new_a = new.to_json()["Attributes"] if new is not None else {}
 
@@ -203,7 +203,7 @@ class StreamRecord(BaseModel):
 
 
 class StreamShard(BaseModel):
-    def __init__(self, account_id: str, table: "Table"):
+    def __init__(self, account_id: str, table: "Table") -> None:
         self.account_id = account_id
         self.table = table
         self.id = "shardId-00000001541626099285-f35f62ef"
@@ -266,7 +266,7 @@ class Table(CloudFormationModel):
         tags: Optional[list[dict[str, str]]] = None,
         deletion_protection_enabled: Optional[bool] = False,
         warm_throughput: Optional[dict[str, Any]] = None,
-    ):
+    ) -> None:
         self.name = table_name
         self.account_id = account_id
         self.region_name = region
@@ -1184,7 +1184,7 @@ class Backup:
         table: Table,
         status: Optional[str] = None,
         type_: Optional[str] = None,
-    ):
+    ) -> None:
         self.region_name = region_name
         self.account_id = account_id
         self.name = name
@@ -1245,7 +1245,9 @@ class Backup:
 
 
 class RestoredTable(Table):
-    def __init__(self, name: str, account_id: str, region: str, backup: "Backup"):
+    def __init__(
+        self, name: str, account_id: str, region: str, backup: "Backup"
+    ) -> None:
         params = self._parse_params_from_backup(backup)
         super().__init__(name, account_id=account_id, region=region, **params)
         self.indexes = copy.deepcopy(backup.table.indexes)
@@ -1275,7 +1277,7 @@ class RestoredTable(Table):
 
 
 class RestoredPITTable(Table):
-    def __init__(self, name: str, account_id: str, region: str, source: Table):
+    def __init__(self, name: str, account_id: str, region: str, source: Table) -> None:
         params = self._parse_params_from_table(source)
         super().__init__(name, account_id=account_id, region=region, **params)
         self.indexes = copy.deepcopy(source.indexes)
@@ -1303,7 +1305,7 @@ class RestoredPITTable(Table):
 
 
 class ResourcePolicy:
-    def __init__(self, resource_arn: str, policy_doc: str):
+    def __init__(self, resource_arn: str, policy_doc: str) -> None:
         self.resource_arn = resource_arn
         self.policy_doc = policy_doc
         self.revision_id = str(int(unix_time_millis()))

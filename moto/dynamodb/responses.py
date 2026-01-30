@@ -195,7 +195,7 @@ class ProjectionExpressionParser:
         self,
         projection_expression: Optional[str],
         expression_attribute_names: Optional[dict[str, str]],
-    ):
+    ) -> None:
         self.projection_expression = projection_expression
         self.expression_attribute_names = (
             expression_attribute_names if expression_attribute_names else {}

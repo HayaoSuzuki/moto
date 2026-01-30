@@ -264,7 +264,7 @@ class BaseResponse(_TemplateEnvironmentMixin, ActionAuthenticatorMixin):
         r"AWS.*(?P<access_key>(?<![A-Z0-9])[A-Z0-9]{20}(?![A-Z0-9]))[:/]"
     )
 
-    def __init__(self, service_name: Optional[str] = None):
+    def __init__(self, service_name: Optional[str] = None) -> None:
         super().__init__()
         self.service_name = service_name
         self.allow_request_decompression = True

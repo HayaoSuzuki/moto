@@ -24,7 +24,7 @@ class DuplicateRequestException(JsonRESTError):
 class InvalidInputException(JsonRESTError):
     code = 400
 
-    def __init__(self, error_msgs: list[str]):
+    def __init__(self, error_msgs: list[str]) -> None:
         error_msgs_str = "\n\t".join(error_msgs)
         super().__init__(
             "InvalidInput", f"The requested item is not acceptable.\n\t{error_msgs_str}"
@@ -34,7 +34,7 @@ class InvalidInputException(JsonRESTError):
 class UnsupportedTLDException(JsonRESTError):
     code = 400
 
-    def __init__(self, tld: str):
+    def __init__(self, tld: str) -> None:
         super().__init__(
             "UnsupportedTLD",
             f"Amazon Route53 does not support the top-level domain (TLD) `.{tld}`.",

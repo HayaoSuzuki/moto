@@ -84,7 +84,7 @@ class StructureShape(BotocoreStructureShape, Shape):
 class ServiceModel(BotocoreServiceModel):
     def __init__(
         self, service_description: Mapping[str, Any], service_name: str | None = None
-    ):
+    ) -> None:
         super().__init__(service_description, service_name)
         # Use our custom shape resolver.
         self._shape_resolver = ShapeResolver(service_description.get("shapes", {}))

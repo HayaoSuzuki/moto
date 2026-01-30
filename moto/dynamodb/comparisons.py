@@ -94,7 +94,7 @@ class Op:
 
     def __init__(
         self, lhs: Union["Func", "Op", "Operand"], rhs: Union["Func", "Op", "Operand"]
-    ):
+    ) -> None:
         self.lhs = lhs
         self.rhs = rhs
 
@@ -155,7 +155,7 @@ class ConditionExpressionParser:
         condition_expression: Optional[str],
         expression_attribute_names: Optional[dict[str, str]],
         expression_attribute_values: Optional[dict[str, dict[str, str]]],
-    ):
+    ) -> None:
         self.condition_expression = condition_expression
         self.expression_attribute_names = expression_attribute_names
         self.expression_attribute_values = expression_attribute_values
@@ -904,7 +904,7 @@ class Operand:
 
 
 class AttributePath(Operand):
-    def __init__(self, path: list[Any]):
+    def __init__(self, path: list[Any]) -> None:
         """Initialize the AttributePath.
 
         Parameters
@@ -950,7 +950,7 @@ class AttributePath(Operand):
 
 
 class AttributeValue(Operand):
-    def __init__(self, value: dict[str, Any]):
+    def __init__(self, value: dict[str, Any]) -> None:
         """Initialize the AttributePath.
 
         Parameters
@@ -1000,7 +1000,7 @@ class OpDefault(Op):
 class OpNot(Op):
     OP = "NOT"
 
-    def __init__(self, lhs: Union["Func", Op]):
+    def __init__(self, lhs: Union["Func", Op]) -> None:
         super().__init__(lhs, None)  # type: ignore[arg-type]
 
     def expr(self, item: Optional[Item]) -> bool:
@@ -1104,7 +1104,7 @@ class Func:
 
     FUNC = "Unknown"
 
-    def __init__(self, *arguments: Any):
+    def __init__(self, *arguments: Any) -> None:
         self.arguments = arguments
 
     def expr(self, item: Optional[Item]) -> bool:
@@ -1117,7 +1117,7 @@ class Func:
 class FuncAttrExists(Func):
     FUNC = "attribute_exists"
 
-    def __init__(self, attribute: Operand):
+    def __init__(self, attribute: Operand) -> None:
         self.attr = attribute
         super().__init__(attribute)
 
@@ -1132,7 +1132,7 @@ def FuncAttrNotExists(attribute: Operand) -> Any:
 class FuncAttrType(Func):
     FUNC = "attribute_type"
 
-    def __init__(self, attribute: Operand, _type: Func):
+    def __init__(self, attribute: Operand, _type: Func) -> None:
         self.attr = attribute
         self.type = _type
         super().__init__(attribute, _type)
@@ -1144,7 +1144,7 @@ class FuncAttrType(Func):
 class FuncBeginsWith(Func):
     FUNC = "begins_with"
 
-    def __init__(self, attribute: Operand, substr: Operand):
+    def __init__(self, attribute: Operand, substr: Operand) -> None:
         self.attr = attribute
         self.substr = substr
         super().__init__(attribute, substr)
@@ -1160,7 +1160,7 @@ class FuncBeginsWith(Func):
 class FuncContains(Func):
     FUNC = "contains"
 
-    def __init__(self, attribute: Operand, operand: Operand):
+    def __init__(self, attribute: Operand, operand: Operand) -> None:
         self.attr = attribute
         self.operand = operand
         super().__init__(attribute, operand)
@@ -1181,7 +1181,7 @@ def FuncNotContains(attribute: Operand, operand: Operand) -> OpNot:
 class FuncSize(Func):
     FUNC = "size"
 
-    def __init__(self, attribute: Operand):
+    def __init__(self, attribute: Operand) -> None:
         self.attr = attribute
         super().__init__(attribute)
 
@@ -1197,7 +1197,7 @@ class FuncSize(Func):
 class FuncBetween(Func):
     FUNC = "BETWEEN"
 
-    def __init__(self, attribute: Operand, start: Operand, end: Operand):
+    def __init__(self, attribute: Operand, start: Operand, end: Operand) -> None:
         self.attr = attribute
         self.start = start
         self.end = end
@@ -1226,7 +1226,7 @@ class FuncBetween(Func):
 class FuncIn(Func):
     FUNC = "IN"
 
-    def __init__(self, attribute: Operand, *possible_values: Any):
+    def __init__(self, attribute: Operand, *possible_values: Any) -> None:
         self.attr = attribute
         self.possible_values = possible_values
         super().__init__(attribute, *possible_values)

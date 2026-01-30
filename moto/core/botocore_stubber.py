@@ -13,7 +13,7 @@ from moto.core.utils import get_equivalent_url_in_aws_domain
 
 
 class MockRawResponse(BytesIO):
-    def __init__(self, response_input: Union[str, bytes]):
+    def __init__(self, response_input: Union[str, bytes]) -> None:
         if isinstance(response_input, str):
             response_input = response_input.encode("utf-8")
         super().__init__(response_input)

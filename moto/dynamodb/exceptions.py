@@ -14,13 +14,13 @@ class DynamodbException(JsonRESTError):
 class MockValidationException(DynamodbException):
     error_type = ERROR_TYPE_PREFIX + "ValidationException"
 
-    def __init__(self, message: str):
+    def __init__(self, message: str) -> None:
         super().__init__(MockValidationException.error_type, message=message)
         self.exception_msg = message
 
 
 class KeyIsEmptyStringException(MockValidationException):
-    def __init__(self, empty_key: str):
+    def __init__(self, empty_key: str) -> None:
         super().__init__(
             message=f"One or more parameter values are not valid. The AttributeValue for a key attribute cannot contain an empty string value. Key: {empty_key}"
         )
@@ -42,7 +42,7 @@ class InvalidUpdateExpressionInvalidDocumentPath(MockValidationException):
 class InvalidUpdateExpression(MockValidationException):
     invalid_update_expr_msg = "Invalid UpdateExpression: {update_expression_error}"
 
-    def __init__(self, update_expression_error: str):
+    def __init__(self, update_expression_error: str) -> None:
         self.update_expression_error = update_expression_error
         super().__init__(
             self.invalid_update_expr_msg.format(
@@ -56,7 +56,7 @@ class InvalidConditionExpression(MockValidationException):
         "Invalid ConditionExpression: {condition_expression_error}"
     )
 
-    def __init__(self, condition_expression_error: str):
+    def __init__(self, condition_expression_error: str) -> None:
         self.condition_expression_error = condition_expression_error
         super().__init__(
             self.invalid_condition_expr_msg.format(
@@ -70,7 +70,7 @@ class ConditionAttributeIsReservedKeyword(InvalidConditionExpression):
         "Attribute name is a reserved keyword; reserved keyword: {keyword}"
     )
 
-    def __init__(self, keyword: str):
+    def __init__(self, keyword: str) -> None:
         self.keyword = keyword
         super().__init__(self.attribute_is_keyword_msg.format(keyword=keyword))
 
@@ -96,7 +96,7 @@ class ProvidedKeyDoesNotExist(MockValidationException):
 class ExpressionAttributeNameNotDefined(InvalidUpdateExpression):
     name_not_defined_msg = "An expression attribute name used in the document path is not defined; attribute name: {n}"
 
-    def __init__(self, attribute_name: str):
+    def __init__(self, attribute_name: str) -> None:
         self.not_defined_attribute_name = attribute_name
         super().__init__(self.name_not_defined_msg.format(n=attribute_name))
 
@@ -106,7 +106,7 @@ class AttributeIsReservedKeyword(InvalidUpdateExpression):
         "Attribute name is a reserved keyword; reserved keyword: {keyword}"
     )
 
-    def __init__(self, keyword: str):
+    def __init__(self, keyword: str) -> None:
         self.keyword = keyword
         super().__init__(self.attribute_is_keyword_msg.format(keyword=keyword))
 
@@ -114,7 +114,7 @@ class AttributeIsReservedKeyword(InvalidUpdateExpression):
 class ExpressionAttributeValueNotDefined(InvalidUpdateExpression):
     attr_value_not_defined_msg = "An expression attribute value used in expression is not defined; attribute value: {attribute_value}"
 
-    def __init__(self, attribute_value: str):
+    def __init__(self, attribute_value: str) -> None:
         self.attribute_value = attribute_value
         super().__init__(
             self.attr_value_not_defined_msg.format(attribute_value=attribute_value)
@@ -129,7 +129,7 @@ class ExpressionAttributeValuesEmpty(MockValidationException):
 class UpdateExprSyntaxError(InvalidUpdateExpression):
     update_expr_syntax_error_msg = "Syntax error; {error_detail}"
 
-    def __init__(self, error_detail: str):
+    def __init__(self, error_detail: str) -> None:
         self.error_detail = error_detail
         super().__init__(
             self.update_expr_syntax_error_msg.format(error_detail=error_detail)
@@ -139,7 +139,7 @@ class UpdateExprSyntaxError(InvalidUpdateExpression):
 class InvalidTokenException(UpdateExprSyntaxError):
     token_detail_msg = 'token: "{token}", near: "{near}"'
 
-    def __init__(self, token: str, near: str):
+    def __init__(self, token: str, near: str) -> None:
         self.token = token
         self.near = near
         super().__init__(self.token_detail_msg.format(token=token, near=near))
@@ -150,7 +150,7 @@ class InvalidExpressionAttributeNameKey(MockValidationException):
         'ExpressionAttributeNames contains invalid key: Syntax error; key: "{key}"'
     )
 
-    def __init__(self, key: str):
+    def __init__(self, key: str) -> None:
         self.key = key
         super().__init__(self.invalid_expr_attr_name_msg.format(key=key))
 
@@ -189,7 +189,7 @@ class RangeKeyTooLong(MockValidationException):
 class IncorrectOperandType(InvalidUpdateExpression):
     inv_operand_msg = "Incorrect operand type for operator or function; operator or function: {f}, operand type: {t}"
 
-    def __init__(self, operator_or_function: str, operand_type: str):
+    def __init__(self, operator_or_function: str, operand_type: str) -> None:
         self.operator_or_function = operator_or_function
         self.operand_type = operand_type
         super().__init__(
@@ -209,7 +209,7 @@ class ConditionalCheckFailed(DynamodbException):
 
     def __init__(
         self, msg: Optional[str] = None, item: Optional[dict[str, Any]] = None
-    ):
+    ) -> None:
         _msg = msg or "The conditional request failed"
         super().__init__(ConditionalCheckFailed.error_type, _msg)
         if item:
@@ -238,7 +238,7 @@ class TransactionCanceledException(DynamodbException):
     cancel_reason_msg = "Transaction cancelled, please refer cancellation reasons for specific reasons [{}]"
     error_type = "com.amazonaws.dynamodb.v20120810#TransactionCanceledException"
 
-    def __init__(self, errors: list[Any]):
+    def __init__(self, errors: list[Any]) -> None:
         msg = self.cancel_reason_msg.format(
             ", ".join([str(code) for code, _, _ in errors])
         )
@@ -283,14 +283,14 @@ class EmptyKeyAttributeException(MockValidationException):
     # AWS has a different message for empty index keys
     empty_index_msg = "One or more parameter values are not valid. The update expression attempted to update a secondary index key to a value that is not supported. The AttributeValue for a key attribute cannot contain an empty string value."
 
-    def __init__(self, key_in_index: bool = False):
+    def __init__(self, key_in_index: bool = False) -> None:
         super().__init__(self.empty_index_msg if key_in_index else self.empty_str_msg)
 
 
 class UpdateHashRangeKeyException(MockValidationException):
     msg = "One or more parameter values were invalid: Cannot update attribute {}. This attribute is part of the key"
 
-    def __init__(self, key_name: str):
+    def __init__(self, key_name: str) -> None:
         super().__init__(self.msg.format(key_name))
 
 
@@ -299,19 +299,19 @@ class InvalidAttributeTypeError(MockValidationException):
 
     def __init__(
         self, name: Optional[str], expected_type: Optional[str], actual_type: str
-    ):
+    ) -> None:
         super().__init__(self.msg.format(name, expected_type, actual_type))
 
 
 class DuplicateUpdateExpression(InvalidUpdateExpression):
-    def __init__(self, name_1: str, name_2: str):
+    def __init__(self, name_1: str, name_2: str) -> None:
         super().__init__(
             f"Two document paths overlap with each other; must remove or rewrite one of these paths; path one: [{', '.join(name_1.split('.'))}], path two: [{', '.join(name_2.split('.'))}]"
         )
 
 
 class InvalidProjectionExpression(MockValidationException):
-    def __init__(self, path_1: str, path_2: str):
+    def __init__(self, path_1: str, path_2: str) -> None:
         super().__init__(
             f"Invalid ProjectionExpression: Two document paths overlap with each other; must remove or rewrite one of these paths; path one: [{', '.join(path_1.split('.'))}], path two: [{', '.join(path_2.split('.'))}]"
         )
@@ -325,7 +325,9 @@ class TooManyClauses(InvalidUpdateExpression):
 
 
 class ResourceNotFoundException(JsonRESTError):
-    def __init__(self, msg: Optional[str] = None, table_name: Optional[str] = None):
+    def __init__(
+        self, msg: Optional[str] = None, table_name: Optional[str] = None
+    ) -> None:
         err = ERROR_TYPE_PREFIX + "ResourceNotFoundException"
         default_msg = "Requested resource not found"
         if table_name is not None:
@@ -334,13 +336,13 @@ class ResourceNotFoundException(JsonRESTError):
 
 
 class TableNotFoundException(JsonRESTError):
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         err = ERROR_TYPE_PREFIX + "TableNotFoundException"
         super().__init__(err, f"Table not found: {name}")
 
 
 class PointInTimeRecoveryUnavailable(JsonRESTError):
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         err = ERROR_TYPE_PREFIX + "PointInTimeRecoveryUnavailableException"
         super().__init__(
             err, f"Point in time recovery is not enabled for table '{name}'"
@@ -348,19 +350,19 @@ class PointInTimeRecoveryUnavailable(JsonRESTError):
 
 
 class SourceTableNotFoundException(JsonRESTError):
-    def __init__(self, source_table_name: str):
+    def __init__(self, source_table_name: str) -> None:
         er = ERROR_TYPE_PREFIX + "SourceTableNotFoundException"
         super().__init__(er, f"Source table not found: {source_table_name}")
 
 
 class BackupNotFoundException(JsonRESTError):
-    def __init__(self, backup_arn: str):
+    def __init__(self, backup_arn: str) -> None:
         er = ERROR_TYPE_PREFIX + "BackupNotFoundException"
         super().__init__(er, f"Backup not found: {backup_arn}")
 
 
 class TableAlreadyExistsException(JsonRESTError):
-    def __init__(self, target_table_name: str):
+    def __init__(self, target_table_name: str) -> None:
         er = ERROR_TYPE_PREFIX + "TableAlreadyExistsException"
         super().__init__(er, f"Table already exists: {target_table_name}")
 
@@ -399,18 +401,18 @@ class TransactWriteSingleOpException(MockValidationException):
 
 
 class SerializationException(DynamodbException):
-    def __init__(self, msg: str):
+    def __init__(self, msg: str) -> None:
         super().__init__(error_type="SerializationException", message=msg)
 
 
 class UnknownKeyType(MockValidationException):
-    def __init__(self, key_type: str, position: str):
+    def __init__(self, key_type: str, position: str) -> None:
         msg = f"1 validation error detected: Value '{key_type}' at '{position}' failed to satisfy constraint: Member must satisfy enum value set: [HASH, RANGE]"
         super().__init__(msg)
 
 
 class DeletionProtectedException(MockValidationException):
-    def __init__(self, table_name: str):
+    def __init__(self, table_name: str) -> None:
         msg = f"1 validation error detected: Table '{table_name}' can't be deleted while DeletionProtectionEnabled is set to True"
         super().__init__(msg)
 
@@ -418,6 +420,6 @@ class DeletionProtectedException(MockValidationException):
 class PolicyNotFoundException(DynamodbException):
     error_type = ERROR_TYPE_PREFIX + "PolicyNotFoundException"
 
-    def __init__(self, message: str):
+    def __init__(self, message: str) -> None:
         super().__init__(PolicyNotFoundException.error_type, message=message)
         self.exception_msg = message

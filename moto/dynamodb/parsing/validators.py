@@ -53,7 +53,7 @@ from moto.dynamodb.utils import find_duplicates, find_path_overlaps
 
 
 class ExpressionAttributeValueProcessor(DepthFirstTraverser):  # type: ignore[misc]
-    def __init__(self, expression_attribute_values: dict[str, dict[str, Any]]):
+    def __init__(self, expression_attribute_values: dict[str, dict[str, Any]]) -> None:
         self.expression_attribute_values = expression_attribute_values
 
     def _processing_map(
@@ -82,7 +82,7 @@ class ExpressionAttributeValueProcessor(DepthFirstTraverser):  # type: ignore[mi
 
 
 class ExpressionPathResolver:
-    def __init__(self, expression_attribute_names: dict[str, str]):
+    def __init__(self, expression_attribute_names: dict[str, str]) -> None:
         self.expression_attribute_names = expression_attribute_names
 
     @classmethod
@@ -160,7 +160,7 @@ class ExpressionAttributeResolvingProcessor(DepthFirstTraverser):  # type: ignor
             UpdateExpressionPath: self.process_expression_path_node,
         }
 
-    def __init__(self, expression_attribute_names: dict[str, str], item: Item):
+    def __init__(self, expression_attribute_names: dict[str, str], item: Item) -> None:
         self.expression_attribute_names = expression_attribute_names
         self.item = item
         self.resolving = False
@@ -367,7 +367,7 @@ class ExecuteOperations(DepthFirstTraverser):  # type: ignore[misc]
 
 
 class EmptyStringKeyValueValidator(DepthFirstTraverser):  # type: ignore[misc]
-    def __init__(self, key_attributes: list[str]):
+    def __init__(self, key_attributes: list[str]) -> None:
         self.key_attributes = key_attributes
 
     def _processing_map(
@@ -396,7 +396,7 @@ class EmptyStringKeyValueValidator(DepthFirstTraverser):  # type: ignore[misc]
 
 
 class TypeMismatchValidator(DepthFirstTraverser):  # type: ignore[misc]
-    def __init__(self, key_attributes_type: list[dict[str, str]]):
+    def __init__(self, key_attributes_type: list[dict[str, str]]) -> None:
         self.key_attributes_type = key_attributes_type
 
     def _processing_map(
@@ -428,7 +428,7 @@ class UpdateHashRangeKeyValidator(DepthFirstTraverser):  # type: ignore[misc]
         self,
         table_key_attributes: list[str],
         expression_attribute_names: dict[str, str],
-    ):
+    ) -> None:
         self.table_key_attributes = table_key_attributes
         self.expression_attribute_names = expression_attribute_names
 
@@ -454,7 +454,7 @@ class UpdateHashRangeKeyValidator(DepthFirstTraverser):  # type: ignore[misc]
 
 
 class OverlappingPathsValidator(DepthFirstTraverser):  # type: ignore[misc]
-    def __init__(self, expression_attribute_names: dict[str, str]):
+    def __init__(self, expression_attribute_names: dict[str, str]) -> None:
         self.expression_attribute_names = expression_attribute_names
 
     def _processing_map(
@@ -541,7 +541,7 @@ class Validator:
         expression_attribute_values: dict[str, dict[str, Any]],
         item: Item,
         table: Table,
-    ):
+    ) -> None:
         """
         Besides validation the Validator should also replace referenced parts of an item which is cheapest upon
         validation.
