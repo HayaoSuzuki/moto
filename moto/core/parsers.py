@@ -9,7 +9,7 @@ from typing import Any, Optional
 from botocore import xform_name
 from botocore.utils import parse_timestamp as botocore_parse_timestamp
 
-from moto.core.model import OperationModel
+from moto.core.model import OperationModel, StructureShape
 
 UNDEFINED = object()  # Sentinel to signal the absence of a field in the input
 
@@ -24,7 +24,7 @@ def parse_timestamp(value: str) -> datetime:
     return as_naive_utc
 
 
-def default_blob_parser(value):
+def default_blob_parser(value) -> bytes:
     # We don't decode this to a str because it's possible that
     # the blob contains binary data that can't be decoded.
     return base64.b64decode(value)
@@ -38,7 +38,7 @@ class RequestParser:
         timestamp_parser=None,
         blob_parser=None,
         map_type=None,
-    ):
+    ) -> None:
         if timestamp_parser is None:
             timestamp_parser = parse_timestamp
         self._timestamp_parser = timestamp_parser
@@ -60,7 +60,7 @@ class QueryParser(RequestParser):
         parsed = self._do_parse(request_dict, shape)
         return parsed if parsed is not UNDEFINED else {}
 
-    def _do_parse(self, request_dict, shape):
+    def _do_parse(self, request_dict, shape: StructureShape):
         parsed = self._parse_shape(shape, request_dict["query_params"])
         return parsed if parsed is not UNDEFINED else {}
 
@@ -68,12 +68,12 @@ class QueryParser(RequestParser):
         handler = getattr(self, f"_handle_{shape.type_name}", self._default_handle)
         return handler(shape, node, prefix)
 
-    def _gonna_recurse(self, query_params, prefix):
+    def _gonna_recurse(self, query_params, prefix) -> bool:
         if prefix == "":
             return False
         return not any(param_key.startswith(prefix) for param_key in query_params)
 
-    def _handle_structure(self, shape, query_params, prefix=""):
+    def _handle_structure(self, shape, query_params, prefix: str = ""):
         if self._gonna_recurse(query_params, prefix):
             return UNDEFINED
         parsed = self.MAP_TYPE()
@@ -89,7 +89,7 @@ class QueryParser(RequestParser):
                 parsed[parsed_key] = value
         return parsed if parsed != {} else UNDEFINED
 
-    def _handle_list(self, shape, node, prefix=""):
+    def _handle_list(self, shape, node, prefix: str = ""):
         # The query protocol serializes empty lists as an empty string.
         if node.get(prefix, UNDEFINED) == "":
             return []
@@ -114,7 +114,7 @@ class QueryParser(RequestParser):
             i += 1
         return parsed_list if parsed_list != [] else UNDEFINED
 
-    def _handle_map(self, shape, query_params, prefix=""):
+    def _handle_map(self, shape, query_params, prefix: str = ""):
         if shape.is_flattened:
             full_prefix = prefix
         else:
@@ -137,17 +137,17 @@ class QueryParser(RequestParser):
             i += 1
         return parsed_map if parsed_map != {} else UNDEFINED
 
-    def _handle_timestamp(self, shape, query_params, prefix=""):
+    def _handle_timestamp(self, shape, query_params, prefix: str = ""):
         value = self._default_handle(shape, query_params, prefix)
         return value if value is UNDEFINED else self._timestamp_parser(value)
 
-    def _handle_blob(self, shape, query_params, prefix=""):
+    def _handle_blob(self, shape, query_params, prefix: str = ""):
         value = self._default_handle(shape, query_params, prefix)
         if value is UNDEFINED:
             return value
         return self._blob_parser(value)
 
-    def _handle_boolean(self, shape, query_params, prefix=""):
+    def _handle_boolean(self, shape, query_params, prefix: str = ""):
         value = self._default_handle(shape, query_params, prefix)
         try:
             return value.lower() == "true"
@@ -155,11 +155,11 @@ class QueryParser(RequestParser):
             pass
         return UNDEFINED
 
-    def _handle_integer(self, shape, query_params, prefix=""):
+    def _handle_integer(self, shape, query_params, prefix: str = "") -> int | object:
         value = self._default_handle(shape, query_params, prefix)
         return value if value is UNDEFINED else int(value)
 
-    def _handle_float(self, shape, query_params, prefix=""):
+    def _handle_float(self, shape, query_params, prefix: str = "") -> float | object:
         value = self._default_handle(shape, query_params, prefix)
         return value if value is UNDEFINED else float(value)
 
@@ -170,7 +170,7 @@ class QueryParser(RequestParser):
         default_value = shape.metadata.get("default", UNDEFINED)
         return value.get(prefix, default_value)
 
-    def _get_serialized_name(self, shape, default_name):
+    def _get_serialized_name(self, shape, default_name: str | None):
         serialized_name = shape.serialization.get("locationNameForQueryCompatibility")
         if serialized_name:
             return serialized_name
@@ -191,7 +191,7 @@ class EC2QueryParser(QueryParser):
             return name[0].upper() + name[1:]
         return default_name
 
-    def _handle_list(self, shape, node, prefix=""):
+    def _handle_list(self, shape, node, prefix: str = ""):
         parsed_list = []
         i = 1
         while True:
@@ -213,7 +213,7 @@ class JSONParser(RequestParser):
         parsed = self._do_parse(request_dict, shape)
         return parsed if parsed is not UNDEFINED else {}
 
-    def _do_parse(self, request_dict, shape):
+    def _do_parse(self, request_dict, shape: StructureShape | None):
         parsed = self.MAP_TYPE()
         if shape is not None:
             parsed = self._handle_json_body(request_dict["body"], shape)
@@ -243,7 +243,7 @@ class JSONParser(RequestParser):
             return value
         return self._blob_parser(value)
 
-    def _handle_float(self, _, value):
+    def _handle_float(self, _, value) -> float | object:
         return float(value) if value is not UNDEFINED else value
 
     def _handle_list(self, shape, node):

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 from datetime import datetime, timedelta, timezone
 from enum import Enum
@@ -630,7 +632,7 @@ def is_valid_enum(value: Any, enum_cls: type[Enum]) -> bool:
 
 
 class ValidationException(Exception):
-    def __init__(self, errors: list[str]):
+    def __init__(self, errors: list[str]) -> None:
         super().__init__("\n\t".join(errors))
         self.errors = errors
 
@@ -646,7 +648,7 @@ class Route53DomainsOperation(BaseModel):
         last_updated_date: datetime,
         message: Optional[str] = None,
         status_flag: Optional[str] = None,
-    ):
+    ) -> None:
         self.id = id_
         self.domain_name = domain_name
         self.status = status
@@ -664,7 +666,7 @@ class Route53DomainsOperation(BaseModel):
         type_: str,
         message: Optional[str] = None,
         status_flag: Optional[str] = None,
-    ):
+    ) -> Route53DomainsOperation:
         id_ = str(mock_random.uuid4())
         submitted_date = datetime.now(timezone.utc)
         last_updated_date = datetime.now(timezone.utc)
@@ -714,7 +716,7 @@ class Route53DomainsContactDetail(BaseModel):
         phone_number: Optional[str] = None,
         state: Optional[str] = None,
         zip_code: Optional[str] = None,
-    ):
+    ) -> None:
         super().__init__()
         self.address_line_1 = address_line_1
         self.address_line_2 = address_line_2
@@ -748,7 +750,7 @@ class Route53DomainsContactDetail(BaseModel):
         phone_number: Optional[str] = None,
         state: Optional[str] = None,
         zip_code: Optional[str] = None,
-    ):
+    ) -> Route53DomainsContactDetail:
         input_errors: list[str] = []
 
         cls.__validate_str_len(address_line_1, "AddressLine1", 255, input_errors)
@@ -797,7 +799,7 @@ class Route53DomainsContactDetail(BaseModel):
         )
 
     @classmethod
-    def validate_dict(cls, d: dict[str, Any]):  # type: ignore[misc, no-untyped-def]
+    def validate_dict(cls, d: dict[str, Any]) -> Route53DomainsContactDetail:  # type: ignore[misc, no-untyped-def]
         address_line_1 = d.get("AddressLine1")
         address_line_2 = d.get("AddressLine2")
         city = d.get("City")
@@ -858,12 +860,12 @@ class Route53DomainsContactDetail(BaseModel):
 
 
 class NameServer:
-    def __init__(self, name: str, glue_ips: list[str]):
+    def __init__(self, name: str, glue_ips: list[str]) -> None:
         self.name = name
         self.glue_ips = glue_ips
 
     @classmethod
-    def validate(cls, name: str, glue_ips: Optional[list[str]] = None):  # type: ignore[misc,no-untyped-def]
+    def validate(cls, name: str, glue_ips: Optional[list[str]] = None) -> NameServer:  # type: ignore[misc,no-untyped-def]
         glue_ips = glue_ips or []
         input_errors: list[str] = []
 
@@ -893,7 +895,7 @@ class NameServer:
         return cls(name, glue_ips)
 
     @classmethod
-    def validate_dict(cls, data: dict[str, Any]):  # type: ignore[misc,no-untyped-def]
+    def validate_dict(cls, data: dict[str, Any]) -> NameServer:  # type: ignore[misc,no-untyped-def]
         name = data.get("Name")
         glue_ips = data.get("GlueIps")
         return cls.validate(name, glue_ips)  # type: ignore[arg-type]
@@ -930,7 +932,7 @@ class Route53Domain(BaseModel):
         status_list: list[str],
         dns_sec_keys: list[dict[str, Any]],
         extra_params: list[dict[str, Any]],
-    ):
+    ) -> None:
         self.domain_name = domain_name
         self.nameservers = nameservers
         self.auto_renew = auto_renew
@@ -976,15 +978,15 @@ class Route53Domain(BaseModel):
         reseller: Optional[str] = None,
         dns_sec_keys: Optional[list[dict[str, Any]]] = None,
         extra_params: Optional[list[dict[str, Any]]] = None,
-    ):
+    ) -> Route53Domain:
         input_errors: list[str] = []
 
         cls.validate_domain_name(domain_name, input_errors)
 
-        nameservers = nameservers or []
+        nameservers_input = nameservers or []
         try:
-            nameservers = [
-                NameServer.validate_dict(nameserver) for nameserver in nameservers
+            validated_nameservers: list[NameServer] = [
+                NameServer.validate_dict(nameserver) for nameserver in nameservers_input
             ] or [
                 NameServer.validate(name="ns-2048.awscdn-64.net"),
                 NameServer.validate(name="ns-2051.awscdn-67.net"),
@@ -993,6 +995,7 @@ class Route53Domain(BaseModel):
             ]
         except ValidationException as e:
             input_errors += e.errors
+            validated_nameservers = []
 
         creation_date = datetime.now(timezone.utc)
         updated_date = datetime.now(timezone.utc)
@@ -1018,7 +1021,7 @@ class Route53Domain(BaseModel):
 
         return cls(
             domain_name=domain_name,
-            nameservers=nameservers,  # type: ignore[arg-type]
+            nameservers=validated_nameservers,
             auto_renew=auto_renew,
             admin_contact=admin_contact,
             registrant_contact=registrant_contact,
@@ -1082,7 +1085,7 @@ class Route53Domain(BaseModel):
 class DomainsFilter:
     def __init__(
         self, name: DomainFilterField, operator: DomainFilterOperator, values: list[str]
-    ):
+    ) -> None:
         self.name: DomainFilterField = name
         self.operator: DomainFilterOperator = operator
         self.values = values
@@ -1113,7 +1116,7 @@ class DomainsFilter:
         )
 
     @classmethod
-    def validate(cls, name: str, operator: str, values: list[str]):  # type: ignore[misc, no-untyped-def]
+    def validate(cls, name: str, operator: str, values: list[str]) -> DomainsFilter:  # type: ignore[misc, no-untyped-def]
         input_errors: list[str] = []
 
         if not is_valid_enum(name, DomainFilterField):
@@ -1151,7 +1154,7 @@ class DomainsFilter:
         )
 
     @classmethod
-    def validate_dict(cls, data: dict[str, Any]):  # type: ignore[misc,no-untyped-def]
+    def validate_dict(cls, data: dict[str, Any]) -> DomainsFilter:  # type: ignore[misc,no-untyped-def]
         name = data.get("Name")
         operator = data.get("Operator")
         values = data.get("Values")
@@ -1159,12 +1162,12 @@ class DomainsFilter:
 
 
 class DomainsSortCondition:
-    def __init__(self, name: DomainFilterField, sort_order: DomainSortOrder):
+    def __init__(self, name: DomainFilterField, sort_order: DomainSortOrder) -> None:
         self.name: DomainFilterField = name
         self.sort_order: DomainSortOrder = sort_order
 
     @classmethod
-    def validate(cls, name: str, sort_order: str):  # type: ignore[misc,no-untyped-def]
+    def validate(cls, name: str, sort_order: str) -> DomainsSortCondition:  # type: ignore[misc,no-untyped-def]
         input_errors: list[str] = []
         if not is_valid_enum(name, DomainFilterField):
             input_errors.append(f"Cannot sort by field {name}")
@@ -1178,7 +1181,7 @@ class DomainsSortCondition:
         return cls(name=DomainFilterField(name), sort_order=DomainSortOrder(sort_order))
 
     @classmethod
-    def validate_dict(cls, data: dict[str, Any]):  # type: ignore[misc,no-untyped-def]
+    def validate_dict(cls, data: dict[str, Any]) -> DomainsSortCondition:  # type: ignore[misc,no-untyped-def]
         name = data.get("Name")
         sort_order = data.get("SortOrder")
         return cls.validate(name=name, sort_order=sort_order)  # type: ignore[arg-type]

@@ -1,4 +1,6 @@
 # type: ignore
+from __future__ import annotations
+
 import abc
 from abc import abstractmethod
 from collections import deque
@@ -7,7 +9,7 @@ from moto.dynamodb.models import DynamoType
 
 
 class Node(metaclass=abc.ABCMeta):
-    def __init__(self, children=None):
+    def __init__(self, children=None) -> None:
         self.type = self.__class__.__name__
         assert children is None or isinstance(children, list)
         self.children = children
@@ -18,10 +20,10 @@ class Node(metaclass=abc.ABCMeta):
                 if isinstance(child, Node):
                     child.set_parent(self)
 
-    def set_parent(self, parent_node):
+    def set_parent(self, parent_node) -> None:
         self.parent = parent_node
 
-    def normalize(self):
+    def normalize(self) -> None:
         """
         Flatten the Add-/Delete-/Remove-/Set-Action children within this Node
         """
@@ -61,7 +63,15 @@ class Node(metaclass=abc.ABCMeta):
 
             self.children = sorted_actions
 
-    def find_clauses(self, clause_types):
+    def find_clauses(
+        self,
+        clause_types: list[
+            type[UpdateExpressionAddAction]
+            | type[UpdateExpressionDeleteAction]
+            | type[UpdateExpressionRemoveAction]
+            | type[UpdateExpressionSetAction]
+        ],
+    ):
         clauses = []
         for child in self.children or []:
             if type(child) in clause_types:
@@ -76,7 +86,7 @@ class Node(metaclass=abc.ABCMeta):
 class LeafNode(Node):
     """A LeafNode is a Node where none of the children are Nodes themselves."""
 
-    def __init__(self, children=None):
+    def __init__(self, children=None) -> None:
         super().__init__(children)
 
 
@@ -151,7 +161,7 @@ class UpdateExpressionRemoveAction(UpdateExpressionAction):
     RemoveAction => Path
     """
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         self_value = self.get_value()
         other_value = other.get_value()
         if isinstance(self_value, int) and isinstance(other_value, int):
@@ -230,14 +240,14 @@ class UpdateExpressionDeleteClause(UpdateExpressionClause):
 class ExpressionPathDescender(Node):
     """Node identifying descender into nested structure (.) in expression"""
 
-    def to_str(self):
+    def to_str(self) -> str:
         return "."
 
 
 class ExpressionSelector(LeafNode):
     """Node identifying selector [selection_index] in expresion"""
 
-    def __init__(self, selection_index):
+    def __init__(self, selection_index) -> None:
         try:
             super().__init__(children=[int(selection_index)])
         except ValueError:
@@ -248,14 +258,14 @@ class ExpressionSelector(LeafNode):
     def get_index(self):
         return self.children[0]
 
-    def to_str(self):
+    def to_str(self) -> str:
         return f"[{self.get_index()}]"
 
 
 class ExpressionAttribute(LeafNode):
     """An attribute identifier as used in the DDB item"""
 
-    def __init__(self, attribute):
+    def __init__(self, attribute) -> None:
         super().__init__(children=[attribute])
 
     def get_attribute_name(self):
@@ -268,7 +278,7 @@ class ExpressionAttribute(LeafNode):
 class ExpressionAttributeName(LeafNode):
     """An ExpressionAttributeName is an alias for an attribute identifier"""
 
-    def __init__(self, attribute_name):
+    def __init__(self, attribute_name) -> None:
         super().__init__(children=[attribute_name])
 
     def get_attribute_name_placeholder(self):
@@ -281,7 +291,7 @@ class ExpressionAttributeName(LeafNode):
 class ExpressionAttributeValue(LeafNode):
     """An ExpressionAttributeValue is an alias for an value"""
 
-    def __init__(self, value):
+    def __init__(self, value) -> None:
         super().__init__(children=[value])
 
     def get_value_name(self):
@@ -291,7 +301,7 @@ class ExpressionAttributeValue(LeafNode):
 class ExpressionValueOperator(LeafNode):
     """An ExpressionValueOperator is an operation that works on 2 values"""
 
-    def __init__(self, value):
+    def __init__(self, value) -> None:
         super().__init__(children=[value])
 
     def get_operator(self):
@@ -307,7 +317,7 @@ class UpdateExpressionFunction(Node):
     def get_function_name(self):
         return self.children[0]
 
-    def get_nth_argument(self, n=1):
+    def get_nth_argument(self, n: int = 1):
         """Return nth element where n is a 1-based index."""
         assert n >= 1
         return self.children[n]
@@ -319,7 +329,7 @@ class DDBTypedValue(Node):
     which is the value of type `DynamoType`.
     """
 
-    def __init__(self, value):
+    def __init__(self, value) -> None:
         assert isinstance(value, DynamoType), "DDBTypedValue must be of DynamoType"
         super().__init__(children=[value])
 
@@ -330,7 +340,7 @@ class DDBTypedValue(Node):
 class NoneExistingPath(LeafNode):
     """A placeholder for Paths that did not exist in the Item."""
 
-    def __init__(self, creatable=False):
+    def __init__(self, creatable: bool = False) -> None:
         super().__init__(children=[creatable])
 
     def is_creatable(self):
@@ -348,7 +358,7 @@ class DepthFirstTraverser:
     """
 
     @abstractmethod
-    def _processing_map(self):
+    def _processing_map(self) -> None:
         """
         A map providing a processing function per node class type to a function that takes in a Node object and
         processes it. A Node can only be processed by a single function and they are considered in order. Therefore if
@@ -370,11 +380,11 @@ class DepthFirstTraverser:
             if isinstance(node, class_key):
                 return processor(node)
 
-    def pre_processing_of_child(self, parent_node, child_id):
+    def pre_processing_of_child(self, parent_node: Node, child_id: int) -> None:
         """Hook that is called pre-processing of the child at position `child_id`"""
         pass
 
-    def traverse_node_recursively(self, node, child_id=-1):
+    def traverse_node_recursively(self, node, child_id: int = -1):
         """
         Traverse nodes depth first processing nodes bottom up (if root node is considered the top).
 
@@ -407,14 +417,14 @@ class DepthFirstTraverser:
 class NodeDepthLeftTypeFetcher:
     """Helper class to fetch a node of a specific type. Depth left-first traversal"""
 
-    def __init__(self, node_type, root_node):
+    def __init__(self, node_type, root_node) -> None:
         assert issubclass(node_type, Node)
         self.node_type = node_type
         self.root_node = root_node
         self.queue = deque()
         self.add_nodes_left_to_right_depth_first(self.root_node)
 
-    def add_nodes_left_to_right_depth_first(self, node):
+    def add_nodes_left_to_right_depth_first(self, node) -> None:
         if isinstance(node, Node) and node.children is not None:
             for child_node in node.children:
                 self.add_nodes_left_to_right_depth_first(child_node)
@@ -424,10 +434,10 @@ class NodeDepthLeftTypeFetcher:
     def __iter__(self):
         return self
 
-    def next(self):
+    def next(self) -> Node:
         return self.__next__()
 
-    def __next__(self):
+    def __next__(self) -> Node:
         while len(self.queue) > 0:
             candidate = self.queue.popleft()
             if isinstance(candidate, self.node_type):

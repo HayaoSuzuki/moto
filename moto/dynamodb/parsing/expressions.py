@@ -1,4 +1,6 @@
 # type: ignore
+from __future__ import annotations
+
 import abc
 import logging
 from abc import abstractmethod
@@ -52,10 +54,10 @@ class NestableExpressionParserMixin:
     in the originating expression.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.target_clauses = deque()
 
-    def _parse_target_clause(self, factory_class):
+    def _parse_target_clause(self, factory_class) -> None:
         """
 
         Args:
@@ -78,7 +80,7 @@ class NestableExpressionParserMixin:
         self.token_pos = token_pos
 
     @abstractmethod
-    def _initializer_args(self):
+    def _initializer_args(self) -> None:
         """
         Get the arguments of the initializer. This is implemented by the calling class. See ExpressionParser for an
         example.
@@ -89,7 +91,7 @@ class NestableExpressionParserMixin:
 
     @classmethod
     @abstractmethod
-    def _nestable_class(cls):
+    def _nestable_class(cls) -> None:
         """
         Get the class of the Node that will be created that would be nested. For the example in the docstring this would
         be UpdateExpression
@@ -129,7 +131,7 @@ class NestableExpressionParserMixin:
 class ExpressionParser(metaclass=abc.ABCMeta):
     """Abstract class"""
 
-    def __init__(self, expression_token_list, token_pos=0):
+    def __init__(self, expression_token_list, token_pos: int = 0) -> None:
         """
 
         Args:
@@ -143,7 +145,7 @@ class ExpressionParser(metaclass=abc.ABCMeta):
         return {"expression_token_list": self.token_list, "token_pos": self.token_pos}
 
     @abstractmethod
-    def _parse(self):
+    def _parse(self) -> None:
         """
         Start parsing the token_list from token_pos for the factory type.
 
@@ -152,12 +154,12 @@ class ExpressionParser(metaclass=abc.ABCMeta):
         """
 
     @classmethod
-    def is_possible_start(cls, token):
+    def is_possible_start(cls, token) -> bool | None:
         return token is not None and cls._is_possible_start(token)
 
     @classmethod
     @abstractmethod
-    def _is_possible_start(cls, token):
+    def _is_possible_start(cls, token) -> None:
         """
 
         Args:
@@ -177,7 +179,7 @@ class ExpressionParser(metaclass=abc.ABCMeta):
         """
         return self._parse(), self.token_pos
 
-    def parse(self):
+    def parse(self) -> None:
         return self._parse()
 
     def get_next_token_type(self):
@@ -269,7 +271,7 @@ class ExpressionParser(metaclass=abc.ABCMeta):
         else:
             return ""
 
-    def skip_white_space(self):
+    def skip_white_space(self) -> None:
         try:
             while self.get_next_token_type() == Token.WHITESPACE:
                 self.token_pos += 1
@@ -277,7 +279,7 @@ class ExpressionParser(metaclass=abc.ABCMeta):
             assert self.token_pos > 0, "We should always have positive indexes"
             logger.debug("We are out of range so end is reached")
 
-    def process_token_of_type(self, token_type):
+    def process_token_of_type(self, token_type: int | str):
         """
         Maker sure the next token is of type `token_type` if not raise unexpected token
         Args:
@@ -293,7 +295,7 @@ class ExpressionParser(metaclass=abc.ABCMeta):
         else:
             self.raise_unexpected_token()
 
-    def goto_next_significant_token(self):
+    def goto_next_significant_token(self) -> None:
         """Continue past current token and skip all whitespaces"""
         self.token_pos += 1
         self.skip_white_space()
@@ -337,11 +339,11 @@ class NestableBinExpressionParser(ExpressionParser):
     in the originating expression.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.target_nodes = deque()
 
-    def _parse_target_clause(self, factory_class):
+    def _parse_target_clause(self, factory_class) -> None:
         """
 
         Args:
@@ -357,7 +359,7 @@ class NestableBinExpressionParser(ExpressionParser):
         self.target_nodes.append(ast)
         logger.debug("Continue where previous parsing ended: %s", self.token_pos)
 
-    def _parse(self):
+    def _parse(self) -> UpdateExpressionValue:
         self._parse_target_clause(self._operand_factory_class())
         while self._binop_factory_class().is_possible_start(self.get_next_token()):
             self._parse_target_clause(self._binop_factory_class())
@@ -368,7 +370,7 @@ class NestableBinExpressionParser(ExpressionParser):
         return self._create_node()
 
     @abstractmethod
-    def _operand_factory_class(self):
+    def _operand_factory_class(self) -> None:
         """
         Get the Parser class of the Operands for the Binary operations/actions.
 
@@ -377,7 +379,7 @@ class NestableBinExpressionParser(ExpressionParser):
         """
 
     @abstractmethod
-    def _binop_factory_class(self):
+    def _binop_factory_class(self) -> None:
         """
         Get a factory that gets the possible binary operation.
 
@@ -385,7 +387,7 @@ class NestableBinExpressionParser(ExpressionParser):
             class: A class extending ExpressionParser
         """
 
-    def _create_node(self):
+    def _create_node(self) -> UpdateExpressionValue:
         """
         target_clauses has the nodes in order of encountering. Go through them forward and build the tree bottom up.
         For simplicity docstring will use Operand Node rather than the specific node
@@ -436,7 +438,14 @@ class UpdateExpressionParser(ExpressionParser, NestableExpressionParserMixin):
     """
 
     @classmethod
-    def _sub_factories(cls):
+    def _sub_factories(
+        cls,
+    ) -> list[
+        type[UpdateExpressionAddClauseParser]
+        | type[UpdateExpressionDeleteClauseParser]
+        | type[UpdateExpressionRemoveClauseParser]
+        | type[UpdateExpressionSetClauseParser]
+    ]:
         return [
             UpdateExpressionSetClauseParser,
             UpdateExpressionAddClauseParser,
@@ -445,21 +454,27 @@ class UpdateExpressionParser(ExpressionParser, NestableExpressionParserMixin):
         ]
 
     @classmethod
-    def _is_possible_start(cls, token):
+    def _is_possible_start(cls, token) -> None:
         pass
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         NestableExpressionParserMixin.__init__(self)
 
     @classmethod
-    def _nestable_class(cls):
+    def _nestable_class(cls) -> type[UpdateExpression]:
         return UpdateExpression
 
-    def _parse_expression_clause(self, factory_class):
+    def _parse_expression_clause(
+        self,
+        factory_class: type[UpdateExpressionAddClauseParser]
+        | type[UpdateExpressionDeleteClauseParser]
+        | type[UpdateExpressionRemoveClauseParser]
+        | type[UpdateExpressionSetClauseParser],
+    ) -> None:
         return self._parse_target_clause(factory_class)
 
-    def _parse_by_a_subfactory(self):
+    def _parse_by_a_subfactory(self) -> bool:
         for sub_factory in self._sub_factories():
             if sub_factory.is_possible_start(self.get_next_token()):
                 self._parse_expression_clause(sub_factory)
@@ -497,7 +512,7 @@ class UpdateExpressionSetClauseParser(ExpressionParser):
     def _is_possible_start(cls, token):
         return token.type == Token.ATTRIBUTE and token.value.upper() == "SET"
 
-    def _parse(self):
+    def _parse(self) -> UpdateExpressionSetClause:
         assert self.is_possible_start(self.get_next_token())
         self.goto_next_significant_token()
         ast, self.token_pos = UpdateExpressionSetActionsParser(
@@ -512,7 +527,7 @@ class UpdateExpressionActionsParser(ExpressionParser, NestableExpressionParserMi
     UpdateExpressionSetActions
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         NestableExpressionParserMixin.__init__(self)
 
@@ -523,12 +538,12 @@ class UpdateExpressionActionsParser(ExpressionParser, NestableExpressionParserMi
 
     @classmethod
     @abstractmethod
-    def _nestable_class(cls):
+    def _nestable_class(cls) -> type[UpdateExpressionSetActions]:
         return UpdateExpressionSetActions
 
     @classmethod
     @abstractmethod
-    def _nested_expression_parser_class(cls):
+    def _nested_expression_parser_class(cls) -> None:
         """Returns the parser for the query part that creates the nested nodes"""
 
     def _parse(self):
@@ -566,11 +581,11 @@ class UpdateExpressionSetActionsParser(UpdateExpressionActionsParser):
     """
 
     @classmethod
-    def _nested_expression_parser_class(cls):
+    def _nested_expression_parser_class(cls) -> type[UpdateExpressionSetActionParser]:
         return UpdateExpressionSetActionParser
 
     @classmethod
-    def _nestable_class(cls):
+    def _nestable_class(cls) -> type[UpdateExpressionSetActions]:
         return UpdateExpressionSetActions
 
 
@@ -582,10 +597,10 @@ class UpdateExpressionSetActionParser(ExpressionParser):
     """
 
     @classmethod
-    def _is_possible_start(cls, token):
+    def _is_possible_start(cls, token) -> bool | None:
         return UpdateExpressionPathParser.is_possible_start(token)
 
-    def _parse(self):
+    def _parse(self) -> UpdateExpressionSetAction:
         """
         UpdateExpressionSetActionParser only gets called when expecting a SetAction. So we should be aggressive on
         raising invalid Tokens.  We can thus do the following:
@@ -615,12 +630,12 @@ class UpdateExpressionPathParser(ExpressionParser):
 
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.path_nodes = []
 
     @classmethod
-    def _is_possible_start(cls, token):
+    def _is_possible_start(cls, token) -> bool:
         """
         Args:
             token(Token): the token to be checked
@@ -635,14 +650,14 @@ class UpdateExpressionPathParser(ExpressionParser):
             return True
         return False
 
-    def _parse(self):
+    def _parse(self) -> UpdateExpressionPath:
         return self.process_path()
 
-    def process_path(self):
+    def process_path(self) -> UpdateExpressionPath:
         self.parse_path()
         return UpdateExpressionPath(children=self.path_nodes)
 
-    def parse_path(self):
+    def parse_path(self) -> None:
         """
         A path is comprised of:
           - Attribute: the name of an attribute as how it is stored which has no special characters
@@ -665,21 +680,21 @@ class UpdateExpressionPathParser(ExpressionParser):
             self.process_dot()
             self.parse_path_chain()
 
-    def is_next_token_start_of_patch_chain(self):
+    def is_next_token_start_of_patch_chain(self) -> bool:
         return self.get_next_token_type() == Token.DOT
 
-    def process_dot(self):
+    def process_dot(self) -> None:
         self.path_nodes.append(ExpressionPathDescender())
         self.goto_next_significant_token()
 
-    def parse_path_chain(self):
+    def parse_path_chain(self) -> None:
         self.process_attribute_identifying_token()
         self.skip_white_space()
         while self.is_next_token_start_of_selector():
             self.process_selector()
             self.skip_white_space()
 
-    def process_attribute_identifying_token(self):
+    def process_attribute_identifying_token(self) -> None:
         if self.get_next_token_type() == Token.ATTRIBUTE:
             self.path_nodes.append(ExpressionAttribute(self.get_next_token_value()))
         elif self.get_next_token_type() == Token.ATTRIBUTE_NAME:
@@ -689,10 +704,10 @@ class UpdateExpressionPathParser(ExpressionParser):
 
         self.goto_next_significant_token()
 
-    def is_next_token_start_of_selector(self):
+    def is_next_token_start_of_selector(self) -> bool:
         return self.get_next_token_type() == Token.OPEN_SQUARE_BRACKET
 
-    def process_selector(self):
+    def process_selector(self) -> None:
         """
         Process the selector is only called when a selector must be processed. So do the following actions:
          - skip opening bracket
@@ -709,13 +724,13 @@ class UpdateExpressionPathParser(ExpressionParser):
 
 class UpdateExpressionValueParser(NestableBinExpressionParser):
     @classmethod
-    def _is_possible_start(cls, token):
+    def _is_possible_start(cls, token) -> bool | None:
         return UpdateExpressionOperandParser.is_possible_start(token)
 
-    def _operand_factory_class(self):
+    def _operand_factory_class(self) -> type[UpdateExpressionOperandParser]:
         return UpdateExpressionOperandParser
 
-    def _binop_factory_class(self):
+    def _binop_factory_class(self) -> type[UpdateExpressionValueOperatorParser]:
         return UpdateExpressionValueOperatorParser
 
 
@@ -725,7 +740,7 @@ class UpdateExpressionGroupedValueParser(ExpressionParser):
     a grouped value by itself.
     """
 
-    def _parse(self):
+    def _parse(self) -> UpdateExpressionGroupedValue:
         self.process_token_of_type(Token.OPEN_ROUND_BRACKET)
         value, self.token_pos = UpdateExpressionValueParser(
             **self._initializer_args()
@@ -742,10 +757,10 @@ class UpdateExpressionValueOperatorParser(ExpressionParser):
     OPERATION_TOKENS = [Token.PLUS_SIGN, Token.MINUS_SIGN]
 
     @classmethod
-    def _is_possible_start(cls, token):
+    def _is_possible_start(cls, token) -> bool:
         return token.type in cls.OPERATION_TOKENS
 
-    def _parse(self):
+    def _parse(self) -> ExpressionValueOperator:
         operation_value = self.get_next_token_value()
         assert operation_value in self.OPERATION_TOKENS
         self.goto_next_significant_token()
@@ -762,7 +777,14 @@ class UpdateExpressionOperandParser(ExpressionParser):
     """
 
     @classmethod
-    def _sub_factories(cls):
+    def _sub_factories(
+        cls,
+    ) -> list[
+        type[UpdateExpressionAttributeValueParser]
+        | type[UpdateExpressionFunctionParser]
+        | type[UpdateExpressionGroupedValueParser]
+        | type[UpdateExpressionPathParser]
+    ]:
         return [
             UpdateExpressionAttributeValueParser,
             UpdateExpressionFunctionParser,
@@ -771,10 +793,10 @@ class UpdateExpressionOperandParser(ExpressionParser):
         ]
 
     @classmethod
-    def _is_possible_start(cls, token):
+    def _is_possible_start(cls, token) -> bool:
         return any(parser.is_possible_start(token) for parser in cls._sub_factories())
 
-    def _parse(self):
+    def _parse(self) -> None:
         for factory in self._sub_factories():
             if factory.is_possible_start(self.get_next_token()):
                 node, self.token_pos = factory(
@@ -785,7 +807,7 @@ class UpdateExpressionOperandParser(ExpressionParser):
 
 
 class UpdateExpressionAttributeValueParser(ExpressionParser):
-    def _parse(self):
+    def _parse(self) -> ExpressionAttributeValue:
         attr_value = ExpressionAttributeValue(
             self.process_token_of_type(Token.ATTRIBUTE_VALUE)
         )
@@ -797,7 +819,7 @@ class UpdateExpressionAttributeValueParser(ExpressionParser):
 
 
 class UpdateExpressionAttributeValueOrPathParser(ExpressionParser):
-    def _parse(self):
+    def _parse(self) -> None:
         if UpdateExpressionAttributeValueParser.is_possible_start(
             self.get_next_token()
         ):
@@ -811,7 +833,7 @@ class UpdateExpressionAttributeValueOrPathParser(ExpressionParser):
         return token
 
     @classmethod
-    def _is_possible_start(cls, token):
+    def _is_possible_start(cls, token) -> bool:
         return any(
             [
                 UpdateExpressionAttributeValueParser.is_possible_start(token),
@@ -835,7 +857,7 @@ class UpdateExpressionFunctionParser(ExpressionParser):
     }
 
     @classmethod
-    def _is_possible_start(cls, token):
+    def _is_possible_start(cls, token) -> bool:
         """
         Check whether a token is supposed to be a function
         Args:
@@ -849,7 +871,7 @@ class UpdateExpressionFunctionParser(ExpressionParser):
         else:
             return False
 
-    def _parse(self):
+    def _parse(self) -> UpdateExpressionFunction:
         function_name = self.get_next_token_value()
         if function_name not in self.FUNCTIONS.keys():
             # Function names are case sensitive
@@ -875,7 +897,7 @@ class UpdateExpressionRemoveClauseParser(ExpressionParser):
     UpdateExpressionRemoveClause => REMOVE RemoveActions
     """
 
-    def _parse(self):
+    def _parse(self) -> UpdateExpressionRemoveClause:
         assert self.is_possible_start(self.get_next_token())
         self.goto_next_significant_token()
         ast, self.token_pos = UpdateExpressionRemoveActionsParser(
@@ -896,11 +918,13 @@ class UpdateExpressionRemoveActionsParser(UpdateExpressionActionsParser):
     """
 
     @classmethod
-    def _nested_expression_parser_class(cls):
+    def _nested_expression_parser_class(
+        cls,
+    ) -> type[UpdateExpressionRemoveActionParser]:
         return UpdateExpressionRemoveActionParser
 
     @classmethod
-    def _nestable_class(cls):
+    def _nestable_class(cls) -> type[UpdateExpressionRemoveActions]:
         return UpdateExpressionRemoveActions
 
 
@@ -912,10 +936,10 @@ class UpdateExpressionRemoveActionParser(ExpressionParser):
     """
 
     @classmethod
-    def _is_possible_start(cls, token):
+    def _is_possible_start(cls, token) -> bool | None:
         return UpdateExpressionPathParser.is_possible_start(token)
 
-    def _parse(self):
+    def _parse(self) -> UpdateExpressionRemoveAction:
         """
         UpdateExpressionRemoveActionParser only gets called when expecting a RemoveAction. So we should be aggressive on
         raising invalid Tokens.  We can thus do the following:
@@ -931,7 +955,7 @@ class UpdateExpressionRemoveActionParser(ExpressionParser):
 
 
 class UpdateExpressionAddClauseParser(ExpressionParser):
-    def _parse(self):
+    def _parse(self) -> UpdateExpressionAddClause:
         assert self.is_possible_start(self.get_next_token())
         self.goto_next_significant_token()
         ast, self.token_pos = UpdateExpressionAddActionsParser(
@@ -951,16 +975,16 @@ class UpdateExpressionAddActionsParser(UpdateExpressionActionsParser):
     """
 
     @classmethod
-    def _nested_expression_parser_class(cls):
+    def _nested_expression_parser_class(cls) -> type[UpdateExpressionAddActionParser]:
         return UpdateExpressionAddActionParser
 
     @classmethod
-    def _nestable_class(cls):
+    def _nestable_class(cls) -> type[UpdateExpressionAddActions]:
         return UpdateExpressionAddActions
 
 
 class UpdateExpressionPathValueParser(ExpressionParser, metaclass=abc.ABCMeta):
-    def _parse_path_and_value(self):
+    def _parse_path_and_value(self) -> list[None]:
         """
         UpdateExpressionAddActionParser only gets called when expecting an AddAction. So we should be aggressive on
         raising invalid Tokens.  We can thus do the following:
@@ -985,15 +1009,15 @@ class UpdateExpressionPathValueParser(ExpressionParser, metaclass=abc.ABCMeta):
 
 class UpdateExpressionAddActionParser(UpdateExpressionPathValueParser):
     @classmethod
-    def _is_possible_start(cls, token):
+    def _is_possible_start(cls, token) -> bool | None:
         return UpdateExpressionPathParser.is_possible_start(token)
 
-    def _parse(self):
+    def _parse(self) -> UpdateExpressionAddAction:
         return UpdateExpressionAddAction(children=self._parse_path_and_value())
 
 
 class UpdateExpressionDeleteClauseParser(ExpressionParser):
-    def _parse(self):
+    def _parse(self) -> UpdateExpressionDeleteClause:
         assert self.is_possible_start(self.get_next_token())
         self.goto_next_significant_token()
         ast, self.token_pos = UpdateExpressionDeleteActionsParser(
@@ -1013,18 +1037,20 @@ class UpdateExpressionDeleteActionsParser(UpdateExpressionActionsParser):
     """
 
     @classmethod
-    def _nested_expression_parser_class(cls):
+    def _nested_expression_parser_class(
+        cls,
+    ) -> type[UpdateExpressionDeleteActionParser]:
         return UpdateExpressionDeleteActionParser
 
     @classmethod
-    def _nestable_class(cls):
+    def _nestable_class(cls) -> type[UpdateExpressionDeleteActions]:
         return UpdateExpressionDeleteActions
 
 
 class UpdateExpressionDeleteActionParser(UpdateExpressionPathValueParser):
     @classmethod
-    def _is_possible_start(cls, token):
+    def _is_possible_start(cls, token) -> bool | None:
         return UpdateExpressionPathParser.is_possible_start(token)
 
-    def _parse(self):
+    def _parse(self) -> UpdateExpressionDeleteAction:
         return UpdateExpressionDeleteAction(children=self._parse_path_and_value())
